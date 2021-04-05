@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(sqfcurl VERSION 1.0)
-add_executable(sqfcurl src/main.cpp)
+
+file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
+add_executable(sqfcurl src/main.cpp ${SOURCES})
 
 include(FindPkgConfig)
 pkg_check_modules(CURLPP REQUIRED curlpp)
