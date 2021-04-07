@@ -5,25 +5,24 @@
 #include <iostream>
 
 Request::Request(std::string method, std::string endpoint)
-    : m_method(method), m_endpoint(endpoint)
+    : m_method(method), m_endpoint(endpoint), m_request(new curlpp::Easy())
 {
-
 }
 
 Request::Request(std::string method, std::string endpoint, std::string body)
-    : m_method(method), m_endpoint(endpoint), m_body(body)
+    : m_method(method), m_endpoint(endpoint), m_body(body), m_request(new curlpp::Easy())
 {
 
 }
 
 Request::Request(std::string method, std::string endpoint, std::string body, std::list<std::string> headers)
-    : m_method(method), m_endpoint(endpoint), m_body(body), m_headers(headers)
+    : m_method(method), m_endpoint(endpoint), m_body(body), m_headers(headers), m_request(new curlpp::Easy())
 {
 
 }
 
 Request::Request(std::string method, std::string endpoint, std::list<std::string> headers)
-    : m_method(method), m_endpoint(endpoint), m_headers(headers)
+    : m_method(method), m_endpoint(endpoint), m_headers(headers), m_request(new curlpp::Easy())
 {
 
 }
@@ -34,7 +33,10 @@ void Request::perform()
     {
         this->prepare();
 
-        m_request.perform();
+        curlpp::Options::WriteStream ws(&std::cout);
+        m_request->setOpt(ws);
+
+        m_request->perform();
     }
     catch (curlpp::RuntimeError& e)
     {
@@ -50,8 +52,8 @@ void Request::prepare()
 {
     using namespace curlpp::Options;
 
-    m_request.setOpt(new Url(m_endpoint));
-    m_request.setOpt(new HttpHeader(m_headers));
+    m_request->setOpt(new Url(m_endpoint));
+    m_request->setOpt(new HttpHeader(m_headers));
 
     if (m_method == "POST")
     {
@@ -59,12 +61,12 @@ void Request::prepare()
     }
     else if (m_method == "PUT" || m_method == "PATCH")
     {
-        m_request.setOpt(new CustomRequest(m_method));
+        m_request->setOpt(new CustomRequest(m_method));
         prep_post();
     }
     else if (m_method == "DELETE")
     {
-        m_request.setOpt(new CustomRequest("DELETE"));
+        m_request->setOpt(new CustomRequest("DELETE"));
     }
     else if (m_method != "GET")
     {
@@ -76,5 +78,5 @@ void Request::prep_post()
 {
     using namespace curlpp::Options;
 
-    m_request.setOpt(new PostFields(m_body));
+    m_request->setOpt(new PostFields(m_body));
 }

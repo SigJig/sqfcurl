@@ -8,6 +8,7 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <memory>
 
 class Request
 {
@@ -38,7 +39,7 @@ private:
     std::string m_body;
     std::list<std::string> m_headers;
 
-    curlpp::Easy m_request;
+    std::unique_ptr<curlpp::Easy> m_request;
 
     void prepare();
     void prep_post();
