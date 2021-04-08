@@ -1,8 +1,10 @@
 
-#ifndef EXT_H
-#define EXT_H
+#ifndef EXTENSION_H
+#define EXTENSION_H
 
 #include <functional>
+#include <mutex>
+#include <thread>
 
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
@@ -16,7 +18,7 @@ public:
     Extension();
 
     void register_callback(callback_t cb);
-    void call(char* output, int output_size, const char* function);
+    int call(char* output, int output_sz, const char* function, const char** argv, int argc);
 
 private:
     curlpp::Cleanup m_cleanup;
@@ -24,4 +26,4 @@ private:
     callback_t m_callback;
 };
 
-#endif // EXT_H
+#endif // EXTENSION_H
