@@ -22,6 +22,8 @@ extern "C"
 int RVExtensionArgs(char* output, int output_sz, const char* function, const char** argv, int argc)
 {
     ext.call(output, output_sz, function, argv, argc);
+
+    return 0;
 }
 
 void RVExtensionRegisterCallback(callback_t cb)
