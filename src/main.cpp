@@ -8,7 +8,7 @@
 int main()
 {
     Extension ext;
-    ext.test();
+    ext.test_async();
 
     return 0;
 }

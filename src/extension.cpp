@@ -32,9 +32,9 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
     return 0;
 }
 
-void Extension::test()
+void Extension::test_async()
 {
-    for (int i = 0; i < 50; i++)
+    for (int i = 0; i < 10; i++)
     {
         std::shared_ptr<Request> req = make_request(
             "POST", "http://127.0.0.1:8000/gangs",
@@ -45,6 +45,19 @@ void Extension::test()
     }
 
     m_io_service.run();
+}
+
+void Extension::test_sync()
+{
+    for (int i = 0; i < 10; i++)
+    {
+        auto req = make_request(
+            "POST", "http://127.0.0.1:8000/gangs",
+            "{\"name\": \"test\", \"creator\": \"21784218421822222\"}");
+
+        req->perform();
+        std::cout << i << std::endl;
+    }
 }
 
 std::shared_ptr<Request> Extension::make_request(std::string method, std::string endpoint, std::string body)

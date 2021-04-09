@@ -25,7 +25,8 @@ public:
     void register_callback(callback_t cb);
     int call(char* output, int output_sz, const char* function, const char** argv, int argc);
 
-    void test();
+    void test_async();
+    void test_sync();
 
 private:
     curlpp::Cleanup m_cleanup;
