@@ -17,7 +17,7 @@ public:
     Request(std::string method, std::string endpoint, std::string body, cpr::Header headers);
     Request(std::string method, std::string endpoint, cpr::Header headers);
 
-    cpr::Response perform();
+    void perform(const std::function<int(char const* name, char const* function, char const* data)>& cb);
 
 private:
     std::string m_method;

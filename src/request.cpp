@@ -1,6 +1,7 @@
 
 #include "request.h"
 #include "parser.h"
+#include "error.h"
 
 #include <iostream>
 
@@ -27,33 +28,47 @@ Request::Request(std::string method, std::string url, cpr::Header headers)
 
 }
 
-cpr::Response Request::perform()
+void Request::perform(const std::function<int(char const* name, char const* function, char const* data)>& cb)
 {
-    cpr::Response res;
-    if (m_method == "GET")
+    try
     {
-        res = cpr::Get(m_url, m_headers);
-    }
-    else if (m_method == "POST")
-    {
-        res = cpr::Post(m_url, m_body, m_headers);
-    }
-    else if (m_method == "PUT")
-    {
-        res = cpr::Put(m_url, m_body, m_headers);
-    }
-    else if (m_method == "PATCH")
-    {
-        res = cpr::Patch(m_url, m_body, m_headers);
-    }
-    else if (m_method == "DELETE")
-    {
-        res = cpr::Delete(m_url, m_headers);
-    }
-    else
-    {
-        //return std::move(res);
-    }
+        cpr::Response res;
+        if (m_method == "GET")
+        {
+            res = cpr::Get(m_url, m_headers);
+        }
+        else if (m_method == "POST")
+        {
+            res = cpr::Post(m_url, m_body, m_headers);
+        }
+        else if (m_method == "PUT")
+        {
+            res = cpr::Put(m_url, m_body, m_headers);
+        }
+        else if (m_method == "PATCH")
+        {
+            res = cpr::Patch(m_url, m_body, m_headers);
+        }
+        else if (m_method == "DELETE")
+        {
+            res = cpr::Delete(m_url, m_headers);
+        }
+        else
+        {
+            throw CallError(ErrorCode::INVALID_METHOD, "Invalid method " + m_method);
+        }
 
-    return std::move(res);
+        auto status_code = res.status_code;
+        if (status_code < 200 || status_code > 202)
+        {
+            throw CallError(
+                ErrorCode::HTTP_ERROR, std::to_string(static_cast<int>(status_code)));
+        }
+
+        cb("EXTENSION_NAME", "EXTENSION_CB_FNC", res.text.c_str());
+    }
+    catch (const CallError& e)
+    {
+        // idk do something
+    }
 }

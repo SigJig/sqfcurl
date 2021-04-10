@@ -1,6 +1,7 @@
 [requires]
 cpr/1.5.2
 boost/1.75.0
+spdlog/1.8.5
 
 [generators]
 cmake

@@ -8,6 +8,7 @@ int main()
     Extension ext;
 
     callback_t callback = [](const char* name, const char* function, const char* data) -> int {
+        std::cout << name << "::" << function << ": " << data << std::endl;
         return 0;
     };
 

@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
@@ -39,6 +40,7 @@ private:
     boost::thread_group m_threadpool;
 
     callback_t m_callback;
+    std::mutex m_cb_mutex;
 };
 
 #endif // EXTENSION_H

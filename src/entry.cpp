@@ -77,5 +77,5 @@ void STDCALL RVExtensionRegisterCallback(callback_t cb)
 
 void STDCALL RVExtensionVersion(char* output, int output_sz)
 {
-    strncpy_s(output, output_sz, "Version 1.0.0", _TRUNCATE);
+    strncpy_s(output, output_sz-1, "Version 1.0.0", _TRUNCATE);
 }

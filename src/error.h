@@ -9,6 +9,8 @@ enum class ErrorCode
 {
     PARAMS_PARSE_ERROR=1,
     BAD_INITIALIZATION=2,
+    INVALID_METHOD=3,
+    HTTP_ERROR=4,
     // Codes from wiki
     BAD_PARAM_SZ=101,
     BAD_PARAM_TYPE=102,

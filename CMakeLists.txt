@@ -13,6 +13,9 @@ set(Boost_INSTALL_DIR ${CONAN_BOOST_ROOT})
 add_executable(sqfcurl ${SOURCES})
 #add_library(sqfcurl SHARED ${SOURCES})
 
+target_compile_definitions(sqfcurl
+                            PRIVATE EXTENSION_NAME="sqfcurl",
+                            PRIVATE EXTENSION_CB_FNC="extension_cb")
 
 target_link_libraries(sqfcurl
                     ${CONAN_LIBS})

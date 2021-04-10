@@ -26,6 +26,7 @@ Extension::~Extension()
 
 void Extension::register_callback(const callback_t& cb)
 {
+    std::lock_guard<std::mutex> guard(m_cb_mutex);
     m_callback = cb;
 }
 
@@ -33,9 +34,12 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
 {
     try
     {
-        if (!m_callback)
         {
-            throw CallError(ErrorCode::BAD_INITIALIZATION, "Callback has not been assigned");
+            std::lock_guard<std::mutex> guard(m_cb_mutex);
+            if (!m_callback)
+            {
+                throw CallError(ErrorCode::BAD_INITIALIZATION, "Callback has not been assigned");
+            }
         }
 
         if (argc < 1)
@@ -87,7 +91,8 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
             req = std::make_shared<Request>(function, url);
         }
 
-        m_io_service.post(boost::bind(&Request::perform, req));
+        std::lock_guard<std::mutex> guard(m_cb_mutex);
+        m_io_service.post(boost::bind(&Request::perform, req, m_callback));
     }
     catch (const CallError& e)
     {
