@@ -4,18 +4,16 @@
 #include "error.h"
 
 #include <utility>
+#include <spdlog/sinks/rotating_file_sink.h>
 
 #include <iostream>
 
 Extension::Extension()
+    : m_threadcount{4}
 {
-    m_work.reset(new boost::asio::io_service::work(m_io_service));
-    for (int i = 0; i < 4; i++)
-    {
-        m_threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &m_io_service));
-    }
+    m_logger = spdlog::rotating_logger_mt("file_logger", "sqfcurl.log", 1048576 * 5, 3);
 
-    std::cout << "Created 4 threads" << std::endl;
+    init_asio();
 }
 
 Extension::~Extension()
@@ -24,10 +22,22 @@ Extension::~Extension()
     m_threadpool.join_all();
 }
 
+void Extension::init_asio()
+{
+    m_work.reset(new boost::asio::io_service::work(m_io_service));
+    for (int i = 0; i < m_threadcount; i++)
+    {
+        m_threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &m_io_service));
+    }
+
+    m_logger->info("Created {} threads", m_threadcount);
+}
+
 void Extension::register_callback(const callback_t& cb)
 {
     std::lock_guard<std::mutex> guard(m_cb_mutex);
     m_callback = cb;
+    m_logger->info("Callback registered");
 }
 
 int Extension::call(char* output, int output_sz, const char* function, const char** argv, int argc)

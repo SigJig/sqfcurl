@@ -10,8 +10,8 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 set(Boost_INSTALL_DIR ${CONAN_BOOST_ROOT})
-add_executable(sqfcurl ${SOURCES})
-#add_library(sqfcurl SHARED ${SOURCES})
+#add_executable(sqfcurl ${SOURCES})
+add_library(sqfcurl SHARED ${SOURCES})
 
 target_compile_definitions(sqfcurl
                             PRIVATE EXTENSION_NAME="sqfcurl",

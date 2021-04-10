@@ -9,6 +9,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
+#include <spdlog/spdlog.h>
 
 #include "request.h"
 
@@ -21,6 +22,7 @@ public:
     ~Extension();
 
     void register_callback(const callback_t& cb);
+    void init_asio();
     int call(char* output, int output_sz, const char* function, const char** argv, int argc);
 
     // Index of each element when recieved raw from SQF
@@ -35,12 +37,16 @@ public:
     };
 
 private:
+    std::shared_ptr<spdlog::logger> m_logger;
+
     std::unique_ptr<boost::asio::io_service::work> m_work;
     boost::asio::io_service m_io_service;
     boost::thread_group m_threadpool;
 
     callback_t m_callback;
     std::mutex m_cb_mutex;
+
+    uint8_t m_threadcount;
 };
 
 #endif // EXTENSION_H
