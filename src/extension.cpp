@@ -1,10 +1,10 @@
 
 #include "extension.h"
 #include "parser.h"
+#include "error.h"
 
 #include <utility>
 
-#include <chrono>
 #include <iostream>
 
 Extension::Extension()
@@ -24,102 +24,77 @@ Extension::~Extension()
     m_threadpool.join_all();
 }
 
-void Extension::register_callback(callback_t cb)
+void Extension::register_callback(const callback_t& cb)
 {
     m_callback = cb;
 }
 
 int Extension::call(char* output, int output_sz, const char* function, const char** argv, int argc)
 {
-    
-    if (argc < 1)
+    try
     {
-        // ERROR
-    }
-
-    std::string url = sanitize_input(argv[RawIndex::URL]);
-
-    std::shared_ptr<Request> req;
-
-    argc -= 1;
-
-    if (argc >= RawIndex::HEADERS)
-    {
-        cpr::Header headers;
-
-        for (auto s : parse_array(argv[RawIndex::HEADERS]))
+        if (!m_callback)
         {
-            auto pair = parse_array(s);
-
-            if (pair.size() != 2)
-            {
-                // ERROR
-            }
-
-            headers.emplace(pair[0], pair[1]);
+            throw CallError(ErrorCode::BAD_INITIALIZATION, "Callback has not been assigned");
         }
 
-        if (argc >= RawIndex::BODY)
+        if (argc < 1)
         {
-            req = std::make_shared<Request>(
-                function, url,
-                sanitize_input(argv[RawIndex::BODY]),
-                headers);
+            throw CallError(
+                ErrorCode::BAD_PARAM_SZ,
+                "Not enough arguments (expected at least 1, got " + std::to_string(argc) + ")");
+        }
+
+        std::string url = sanitize_input(argv[RawIndex::URL]);
+
+        std::shared_ptr<Request> req;
+
+        argc -= 1;
+
+        if (argc >= RawIndex::HEADERS)
+        {
+            cpr::Header headers;
+
+            for (auto s : parse_array(argv[RawIndex::HEADERS]))
+            {
+                auto pair = parse_array(s);
+
+                if (pair.size() != 2)
+                {
+                    throw CallError(ErrorCode::PARAMS_PARSE_ERROR,
+                        std::string("Invalid size for header key-value pair (expected 2, got " +
+                        std::to_string(pair.size()) + ")"
+                    ));
+                }
+
+                headers.emplace(pair[0], pair[1]);
+            }
+
+            if (argc >= RawIndex::BODY)
+            {
+                req = std::make_shared<Request>(
+                    function, url,
+                    sanitize_input(argv[RawIndex::BODY]),
+                    headers);
+            }
+            else
+            {
+                req = std::make_shared<Request>(function, url, headers);
+            }
         }
         else
         {
-            req = std::make_shared<Request>(function, url, headers);
+            req = std::make_shared<Request>(function, url);
         }
+
+        m_io_service.post(boost::bind(&Request::perform, req));
     }
-    else
+    catch (const CallError& e)
     {
-        req = std::make_shared<Request>(function, url);
+        strncpy_s(output, output_sz-1, e.what(), _TRUNCATE);
+        return static_cast<int>(e.error_code);
     }
 
-    m_io_service.post(boost::bind(&Request::perform, req));
-
-    return argc;
+    return 0;
 }
 
-void Extension::test_async()
-{
-    auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 500; i++)
-    {
-        std::shared_ptr<Request> req = make_request(
-            "POST", "http://127.0.0.1:8000/gangs",
-            "{\"name\": \"test\", \"creator\": \"21784218421822222\"}");
-
-        //m_io_service.post(boost::bind(&Request::perform, req));
-        //std::cout << i << std::endl;
-    }
-
-
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
-    //m_io_service.run();
-}
-
-void Extension::test_sync()
-{
-    auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 10000; i++)
-    {
-        auto req = make_request(
-            "POST", "http://127.0.0.1:8000/gangs",
-            "{\"name\": \"test\", \"creator\": \"21784218421822222\"}");
-
-        //req->perform();
-        //std::cout << req->perform().text << std::endl;
-    }
-
-    auto end = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-    std::cout << dur.count() << "ms" << std::endl;
-}
-
-std::shared_ptr<Request> Extension::make_request(std::string method, std::string endpoint, std::string body)
-{
-    return std::make_shared<Request>(method, endpoint, body);
-}

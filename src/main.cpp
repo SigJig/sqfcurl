@@ -6,21 +6,25 @@
 int main()
 {
     Extension ext;
-    //ext.test_async();
 
-    //auto vec = parse_array("    ['12''3218  '  , '123\"\"12321', \"  fu\"\"ck\"]   ");
+    callback_t callback = [](const char* name, const char* function, const char* data) -> int {
+        return 0;
+    };
 
-    //for (auto s : vec)
-    //{
-    //    std::cout << s << std::endl;
-    //}
+    ext.register_callback(callback);
 
     const char* l[3] = {
         "\"http://127.0.0.1:8000/gangs\"",
         "[ \"[\"\"testheader\"\", \"\"1\"\"]\" ]",
         "{\"name\": \"test\", \"creator\": \"21784218421822222\"}"
     };
-    ext.call("", 0, "POST", l, 3);
+
+    int output_sz = 1000;
+    char output[1000];
+    
+    std::cout << ext.call(output, output_sz, "POST", l, 3) << std::endl;
+
+    if (output[0] != '\0') std::cout << output << std::endl;
 
     return 0;
 }

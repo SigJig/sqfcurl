@@ -19,11 +19,8 @@ public:
     Extension();
     ~Extension();
 
-    void register_callback(callback_t cb);
+    void register_callback(const callback_t& cb);
     int call(char* output, int output_sz, const char* function, const char** argv, int argc);
-
-    void test_async();
-    void test_sync();
 
     // Index of each element when recieved raw from SQF
     // When called from SQF, the request would look something like (after parsing)
@@ -42,8 +39,6 @@ private:
     boost::thread_group m_threadpool;
 
     callback_t m_callback;
-
-    std::shared_ptr<Request> make_request(std::string method, std::string endpoint, std::string body);
 };
 
 #endif // EXTENSION_H

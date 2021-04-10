@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "error.h"
+
 inline std::vector<std::string> parse_array(const std::string& input)
 {
     std::vector<std::string> output;
@@ -62,7 +64,7 @@ inline std::vector<std::string> parse_array(const std::string& input)
         }
     }
 
-    throw std::exception("Goofy ass");
+    throw CallError(ErrorCode::PARAMS_PARSE_ERROR, "Unable to parse input array");
 }
 
 // Because it would make too much sense for string arguments to be converted to actual strings,
