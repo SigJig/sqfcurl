@@ -5,110 +5,82 @@
 #include <string>
 #include <vector>
 
-inline std::string parse_string(std::string input)
+inline std::vector<std::string> parse_array(const std::string& input)
 {
-    std::string output;
-
-    char quot;
+    std::vector<std::string> output;
+    std::string current;
     bool in_string = false;
-    bool last_is_quote = false;
-    bool done = false;
+    bool opener_found = false;
+    char quote;
 
-    for (auto& c : input)
+    for (auto it = input.begin(); it != input.end(); it++)
     {
-        if (done)
+        char c = *it;
+
+        if (!opener_found)
         {
-            if (!isspace(c))
+            if (c == '[')
             {
-                // ERROR
+                opener_found = true;
             }
+        }
+        else if (c == ']' && !in_string)
+        {
+            output.push_back(current);
+
+            return std::move(output);
         }
         else if (c == '"' || c == '\'')
         {
             if (!in_string)
             {
                 in_string = true;
-                quot = c;
+                quote = c;
             }
-            else if (c == quot && !last_is_quote)
+            else if (c != quote)
             {
-                last_is_quote = true;
+                current += c;
+            }
+            else if (*(it + 1) != c)
+            {
+                in_string = false;
             }
             else
             {
-                output += c;
-                last_is_quote = false;
+                current += c;
+                it++; // Skip the next one since its the same quote
             }
         }
-        else if (last_is_quote)
+        else if (c == ',' && !in_string)
         {
-            in_string = false;
-            done = true;
+            output.push_back(current);
+            current.clear();
         }
         else if (in_string)
         {
-            output += c;
-        }
-        else if (!isspace(c))
-        {
-            // ERROR
+            current += c;
         }
     }
 
-    return std::move(output);
+    throw std::exception("Goofy ass");
 }
 
-inline std::vector<std::string> parse_1d(std::string data)
+// Because it would make too much sense for string arguments to be converted to actual strings,
+// not an arma string wrapped in a c string
+// The url argument will be """http://endpoint/blahblah""" when recieved from the extension
+inline std::string sanitize_input(std::string input)
 {
-    std::vector<std::string> out;
-    std::string current;
-
-    int depth = 0;
-    bool in_string = false;
-    bool escaped = false;
-
-    for (auto &c : data)
+    if (input.size() > 2)
     {
-        if (depth < 1)
+        char front = input.front();
+        if (front == input.back() && (front == '"' || front == '\''))
         {
-            if (c == '[')
-            {
-                depth += 1;
-                continue;
-            }
-        }
-        else if (!in_string)
-        {
-            if (c == '"')
-            {
-                in_string = true;
-                continue;
-            }
-            else if (c == ']')
-            {
-                depth -= 1;
-            }
-            else if (c == ',')
-            {
-
-            }
-            else if (!isspace(c))
-            {
-                // ERROR TIME >:D
-            }
-        }
-        else if (c != '"' && escaped)
-        {
-            escaped = false;
-            current += '"';
-        }
-        else if (c == '"')
-        {
-            escaped = true;
+            // Length is length of string minus 2 (quote at the start of the string + quote at end)
+            return input.substr(1, input.size()-2);
         }
     }
 
-    return std::move(out);
+    return input;
 }
 
 #endif // SQFPARSER_H

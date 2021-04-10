@@ -1,12 +1,14 @@
 
-#include <cstring>
+#include <string.h>
 #include <memory>
 
 #include "extension.h"
 
+Extension* ext;
+
 #ifdef __GNUC__
 
-Extension* ext;
+#define STDCALL
 
 extern "C"
 {
@@ -32,23 +34,48 @@ extension_del()
     delete ext;
 }
 
-int RVExtensionArgs(char* output, int output_sz, const char* function, const char** argv, int argc)
-{
-    ext->call(output, output_sz, function, argv, argc);
 
-    return 0;
+#elif _MSC_VER
+
+#include <windows.h>
+
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+{
+    switch (ul_reason_for_call)
+    {
+        case DLL_PROCESS_ATTACH:
+            ext = new Extension();
+            break;
+        case DLL_PROCESS_DETACH:
+            delete ext;
+            break;
+    }
+
+    return TRUE;
 }
 
-void RVExtensionRegisterCallback(callback_t cb)
+extern "C"
+{
+    #define STDCALL __stdcall
+
+    __declspec(dllexport) void __stdcall RVEXtensionVersion(char* output, int output_sz);
+    __declspec(dllexport) void __stdcall RVRegisterCallback(callback_t cb);
+    __declspec(dllexport) int __stdcall RVExtensionArgs(char* output, int output_sz, const char* function, const char** argv, int argc);
+}
+
+#endif
+
+int STDCALL RVExtensionArgs(char* output, int output_sz, const char* function, const char** argv, int argc)
+{
+    return ext->call(output, output_sz, function, argv, argc);
+}
+
+void STDCALL RVExtensionRegisterCallback(callback_t cb)
 {
     ext->register_callback(cb);
 }
 
-void RVExtensionVersion(char* output, int output_sz)
+void STDCALL RVExtensionVersion(char* output, int output_sz)
 {
-    std::strncpy(output, "Version 1.0.0", output_sz - 1);
+    strncpy_s(output, output_sz, "Version 1.0.0", _TRUNCATE);
 }
-
-#elif _MSC_VER
-
-#endif

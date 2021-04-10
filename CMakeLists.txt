@@ -1,24 +1,21 @@
 cmake_minimum_required(VERSION 3.10)
-
 project(sqfcurl VERSION 1.0)
 
 file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
-include(FindPkgConfig)
-pkg_check_modules(CURLPP REQUIRED curlpp)
-
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-find_package(Boost 1.70 REQUIRED COMPONENTS
-                        thread
-                        system)
 
-include_directories(${Boost_INCLUDE_DIR})
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
 
-add_executable(sqfcurl src/main.cpp ${SOURCES})
+set(Boost_INSTALL_DIR ${CONAN_BOOST_ROOT})
+# find_package(Boost 1.70 COMPONENTS program_options REQUIRED)
+#include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+#add_executable(sqfcurl ${SOURCES})
+add_library(sqfcurl SHARED ${SOURCES})
 target_link_libraries(sqfcurl
-                        ${Boost_LIBRARIES}
-                        ${CURLPP_LDFLAGS}
+                        ${CONAN_LIBS}
                         )

@@ -4,79 +4,56 @@
 
 #include <iostream>
 
-Request::Request(std::string method, std::string endpoint)
-    : m_method(method), m_endpoint(endpoint), m_request(new curlpp::Easy())
+Request::Request(std::string method, std::string url)
+    : m_method(method), m_url(url)
 {
 }
 
-Request::Request(std::string method, std::string endpoint, std::string body)
-    : m_method(method), m_endpoint(endpoint), m_body(body), m_request(new curlpp::Easy())
-{
-
-}
-
-Request::Request(std::string method, std::string endpoint, std::string body, std::list<std::string> headers)
-    : m_method(method), m_endpoint(endpoint), m_body(body), m_headers(headers), m_request(new curlpp::Easy())
+Request::Request(std::string method, std::string url, std::string body)
+    : m_method(method), m_url(url), m_body(body)
 {
 
 }
 
-Request::Request(std::string method, std::string endpoint, std::list<std::string> headers)
-    : m_method(method), m_endpoint(endpoint), m_headers(headers), m_request(new curlpp::Easy())
+Request::Request(std::string method, std::string url, std::string body, cpr::Header headers)
+    : m_method(method), m_url(url), m_body(body), m_headers(headers)
 {
 
 }
 
-void Request::perform()
+Request::Request(std::string method, std::string url, cpr::Header headers)
+    : m_method(method), m_url(url), m_headers(headers)
 {
-    try
+
+}
+
+cpr::Response Request::perform()
+{
+    cpr::Response res;
+    if (m_method == "GET")
     {
-        this->prepare();
-
-        curlpp::Options::WriteStream ws(&std::cout);
-        m_request->setOpt(ws);
-
-        m_request->perform();
+        res = cpr::Get(m_url, m_headers);
     }
-    catch (curlpp::RuntimeError& e)
+    else if (m_method == "POST")
     {
-        std::cout << e.what() << std::endl;
+        res = cpr::Post(m_url, m_body, m_headers);
     }
-    catch (curlpp::LogicError& e)
+    else if (m_method == "PUT")
     {
-        std::cout << e.what() << std::endl;
+        res = cpr::Put(m_url, m_body, m_headers);
     }
-}
-
-void Request::prepare()
-{
-    using namespace curlpp::Options;
-
-    m_request->setOpt(new Url(m_endpoint));
-    m_request->setOpt(new HttpHeader(m_headers));
-
-    if (m_method == "POST")
+    else if (m_method == "PATCH")
     {
-        prep_post();
-    }
-    else if (m_method == "PUT" || m_method == "PATCH")
-    {
-        m_request->setOpt(new CustomRequest(m_method));
-        prep_post();
+        res = cpr::Patch(m_url, m_body, m_headers);
     }
     else if (m_method == "DELETE")
     {
-        m_request->setOpt(new CustomRequest("DELETE"));
+        res = cpr::Delete(m_url, m_headers);
     }
-    else if (m_method != "GET")
+    else
     {
-        // TODO: Log weirdo method
+        //return std::move(res);
     }
-}
 
-void Request::prep_post()
-{
-    using namespace curlpp::Options;
-
-    m_request->setOpt(new PostFields(m_body));
+    return std::move(res);
 }
