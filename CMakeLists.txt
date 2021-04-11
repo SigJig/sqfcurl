@@ -28,7 +28,7 @@ else()
 endif()
 
 target_compile_definitions(sqfcurl
-                            PRIVATE EXTENSION_NAME="sqfcurl",
+                            PRIVATE EXTENSION_NAME="sqfcurl"
                             PRIVATE EXTENSION_CB_FNC="extension_cb")
 
 target_link_libraries(sqfcurl

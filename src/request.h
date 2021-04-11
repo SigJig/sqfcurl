@@ -3,11 +3,13 @@
 #define REQUEST_H
 
 #include <cpr/cpr.h>
+#include <spdlog/spdlog.h>
 
 #include <list>
 #include <vector>
 #include <string>
 #include <memory>
+#include <boost/function.hpp>
 
 class Request
 {
@@ -17,7 +19,10 @@ public:
     Request(std::string method, std::string endpoint, std::string body, cpr::Header headers);
     Request(std::string method, std::string endpoint, cpr::Header headers);
 
-    void perform(const std::function<int(char const* name, char const* function, char const* data)>& cb);
+    void perform(
+        const boost::function<int(int, const std::string&)>& cb,
+        std::shared_ptr<spdlog::logger> logger
+    );
 
 private:
     std::string m_method;

@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+
 Extension::Extension()
     : m_threadcount{4}
 {
@@ -34,10 +35,20 @@ void Extension::init_asio()
     m_logger->info("Created {} threads", m_threadcount);
 }
 
-void Extension::register_callback(const callback_t& cb)
+void Extension::register_callback(const callback_raw_t& cb)
 {
+    if (m_callback)
+    {
+        m_logger->info("Attempted to register callback when already registered");
+        return;
+    }
+
     std::lock_guard<std::mutex> guard(m_cb_mutex);
-    m_callback = cb;
+    m_callback = [cb](const char* function, int queue_id, int status, const std::string& data) -> int {
+        std::string result = "[" + std::to_string(status) + "," + std::to_string(queue_id) + "," + data + "]";
+
+        return cb(EXTENSION_NAME, function, result.c_str());
+    };
     m_logger->info("Callback registered");
 }
 
@@ -53,13 +64,15 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
             }
         }
 
-        if (argc < 1)
+        if (argc < static_cast<int>(RawIndex::URL))
         {
             throw CallError(
                 ErrorCode::BAD_PARAM_SZ,
                 "Not enough arguments (expected at least 1, got " + std::to_string(argc) + ")");
         }
 
+        int queue_id = std::stoi(argv[RawIndex::ID]);
+        std::string method = sanitize_input(argv[RawIndex::METHOD]);
         std::string url = sanitize_input(argv[RawIndex::URL]);
 
         std::shared_ptr<Request> req;
@@ -88,22 +101,24 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
             if (argc >= RawIndex::BODY)
             {
                 req = std::make_shared<Request>(
-                    function, url,
+                    method, url,
                     sanitize_input(argv[RawIndex::BODY]),
                     headers);
             }
             else
             {
-                req = std::make_shared<Request>(function, url, headers);
+                req = std::make_shared<Request>(method, url, headers);
             }
         }
         else
         {
-            req = std::make_shared<Request>(function, url);
+            req = std::make_shared<Request>(method, url);
         }
 
         std::lock_guard<std::mutex> guard(m_cb_mutex);
-        m_io_service.post(boost::bind(&Request::perform, req, m_callback));
+        boost::function<int(int, const std::string&)> cb = boost::bind(m_callback, function, queue_id, _1, _2);
+
+        m_io_service.post(boost::bind(&Request::perform, req, std::move(cb), m_logger));
     }
     catch (const CallError& e)
     {

@@ -28,7 +28,9 @@ Request::Request(std::string method, std::string url, cpr::Header headers)
 
 }
 
-void Request::perform(const std::function<int(char const* name, char const* function, char const* data)>& cb)
+void Request::perform(
+    const boost::function<int(int, const std::string&)>& cb,
+    std::shared_ptr<spdlog::logger> logger)
 {
     try
     {
@@ -65,10 +67,10 @@ void Request::perform(const std::function<int(char const* name, char const* func
                 ErrorCode::HTTP_ERROR, std::to_string(static_cast<int>(status_code)));
         }
 
-        cb("EXTENSION_NAME", "EXTENSION_CB_FNC", res.text.c_str());
+        cb(0, res.text);
     }
     catch (const CallError& e)
     {
-        // idk do something
+        cb(static_cast<int>(e.error_code), e.what());
     }
 }
