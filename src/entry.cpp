@@ -1,5 +1,5 @@
 
-#include <string.h>
+#include <cstring>
 #include <memory>
 
 #include "extension.h"
@@ -78,5 +78,5 @@ void STDCALL RVExtensionRegisterCallback(const callback_t& cb)
 
 void STDCALL RVExtensionVersion(char* output, int output_sz)
 {
-    strncpy_s(output, output_sz-1, "Version 1.0.0", _TRUNCATE);
+    strncpy(output, "Version 1.0.0", output_sz-1);
 }

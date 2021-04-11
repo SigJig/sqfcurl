@@ -1,7 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
 project(sqfcurl VERSION 1.0)
 
+set(EXECUTABLE ON)
+
 file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
+
+if (EXECUTABLE)
+    list(REMOVE_ITEM SOURCES "${PROJECT_SOURCE_DIR}/src/entry.cpp")
+else()
+    list(REMOVE_ITEM SOURCES "${PROJECT_SOURCE_DIR}/src/main.cpp")
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -10,8 +20,12 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 set(Boost_INSTALL_DIR ${CONAN_BOOST_ROOT})
-#add_executable(sqfcurl ${SOURCES})
-add_library(sqfcurl SHARED ${SOURCES})
+
+if (EXECUTABLE)
+    add_executable(sqfcurl ${SOURCES})
+else()
+    add_library(sqfcurl SHARED ${SOURCES})
+endif()
 
 target_compile_definitions(sqfcurl
                             PRIVATE EXTENSION_NAME="sqfcurl",

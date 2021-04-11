@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "error.h"
 
+#include <cstring>
 #include <utility>
 #include <spdlog/sinks/rotating_file_sink.h>
 
@@ -106,7 +107,7 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
     }
     catch (const CallError& e)
     {
-        strncpy_s(output, output_sz-1, e.what(), _TRUNCATE);
+        std::strncpy(output, e.what(), output_sz-1);
         return static_cast<int>(e.error_code);
     }
 
