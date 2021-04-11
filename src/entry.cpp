@@ -16,7 +16,7 @@ extern "C"
     int RVExtensionArgs(char* output, int output_sz, const char* function, const char** argv, int argc);
 
     __attribute__((dllexport))
-    void RVExtensionRegisterCallback(callback_t cb);
+    void RVExtensionRegisterCallback(const callback_t& cb);
 
     __attribute__((dllexport))
     void RVExtensionVersion(char* output, int output_sz);
@@ -59,7 +59,7 @@ extern "C"
     #define STDCALL __stdcall
 
     __declspec(dllexport) void __stdcall RVEXtensionVersion(char* output, int output_sz);
-    __declspec(dllexport) void __stdcall RVRegisterCallback(callback_t cb);
+    __declspec(dllexport) void __stdcall RVExtensionRegisterCallback(const callback_t& cb);
     __declspec(dllexport) int __stdcall RVExtensionArgs(char* output, int output_sz, const char* function, const char** argv, int argc);
 }
 
@@ -70,8 +70,9 @@ int STDCALL RVExtensionArgs(char* output, int output_sz, const char* function, c
     return ext->call(output, output_sz, function, argv, argc);
 }
 
-void STDCALL RVExtensionRegisterCallback(callback_t cb)
+void STDCALL RVExtensionRegisterCallback(const callback_t& cb)
 {
+    ext->m_logger->info("Registering callback");
     ext->register_callback(cb);
 }
 

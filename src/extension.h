@@ -36,9 +36,8 @@ public:
         BODY
     };
 
-private:
     std::shared_ptr<spdlog::logger> m_logger;
-
+private:
     std::unique_ptr<boost::asio::io_service::work> m_work;
     boost::asio::io_service m_io_service;
     boost::thread_group m_threadpool;
