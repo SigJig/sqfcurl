@@ -35,7 +35,7 @@ void Extension::init_asio()
     m_logger->info("Created {} threads", m_threadcount);
 }
 
-void Extension::register_callback(const callback_raw_t& cb)
+void Extension::register_callback(callback_raw_t cb)
 {
     if (m_callback)
     {
@@ -52,7 +52,7 @@ int Extension::callback(const char* function, int queue_id, int status, const st
 {
     std::string result = "[" + std::to_string(status) + "," + std::to_string(queue_id) + "," + data + "]";
 
-    return m_callback(EXTENSION_NAME, function, result.c_str());
+    return (m_callback)(EXTENSION_NAME, function, result.c_str());
 }
 
 int Extension::call(char* output, int output_sz, const char* function, const char** argv, int argc)

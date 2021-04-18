@@ -26,7 +26,7 @@ public:
     ~Extension();
 
 
-    void register_callback(const callback_raw_t& cb);
+    void register_callback(callback_raw_t cb);
     void init_asio();
 
     int callback(const char* function, int queue_id, int status, const std::string& data) const;
