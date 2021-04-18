@@ -1,8 +1,8 @@
 
-#include <cstring>
 #include <memory>
 
 #include "extension.h"
+#include "utils.h"
 
 Extension* ext;
 
@@ -78,5 +78,5 @@ void STDCALL RVExtensionRegisterCallback(const callback_raw_t& cb)
 
 void STDCALL RVExtensionVersion(char* output, int output_sz)
 {
-    strncpy(output, "Version 1.0.0", output_sz-1);
+    string_copy(output, output_sz-1, "Version 1.0.0");
 }

@@ -2,8 +2,8 @@
 #include "extension.h"
 #include "parser.h"
 #include "error.h"
+#include "utils.h"
 
-#include <cstring>
 #include <utility>
 #include <spdlog/sinks/rotating_file_sink.h>
 
@@ -11,7 +11,7 @@
 
 
 Extension::Extension()
-    : m_threadcount{4}
+    : m_threadcount{4}, m_callback{nullptr}
 {
     m_logger = spdlog::rotating_logger_mt("file_logger", "sqfcurl.log", 1048576 * 5, 3);
 
@@ -44,12 +44,15 @@ void Extension::register_callback(const callback_raw_t& cb)
     }
 
     std::lock_guard<std::mutex> guard(m_cb_mutex);
-    m_callback = [cb](const char* function, int queue_id, int status, const std::string& data) -> int {
-        std::string result = "[" + std::to_string(status) + "," + std::to_string(queue_id) + "," + data + "]";
-
-        return cb(EXTENSION_NAME, function, result.c_str());
-    };
+    m_callback = cb;
     m_logger->info("Callback registered");
+}
+
+int Extension::callback(const char* function, int queue_id, int status, const std::string& data) const
+{
+    std::string result = "[" + std::to_string(status) + "," + std::to_string(queue_id) + "," + data + "]";
+
+    return m_callback(EXTENSION_NAME, function, result.c_str());
 }
 
 int Extension::call(char* output, int output_sz, const char* function, const char** argv, int argc)
@@ -116,13 +119,14 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
         }
 
         std::lock_guard<std::mutex> guard(m_cb_mutex);
-        boost::function<int(int, const std::string&)> cb = boost::bind(m_callback, function, queue_id, _1, _2);
+        boost::function<int(int, const std::string&)> cb = boost::bind(
+            &Extension::callback, this, function, queue_id, _1, _2);
 
-        m_io_service.post(boost::bind(&Request::perform, req, std::move(cb), m_logger));
+        m_io_service.post(boost::bind(&Request::perform, req, cb, m_logger));
     }
     catch (const CallError& e)
     {
-        std::strncpy(output, e.what(), output_sz-1);
+        string_copy(output, output_sz-1, e.what());
         return static_cast<int>(e.error_code);
     }
 

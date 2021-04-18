@@ -16,7 +16,7 @@
 
 using namespace boost::placeholders;
 
-typedef std::function<int(char const* name, char const* function, char const* data)> callback_raw_t;
+typedef std::function<int(char const*, char const*, char const* data)> callback_raw_t;
 typedef boost::function<int(int, const std::string&)> callback_t;
 
 class Extension
@@ -25,8 +25,11 @@ public:
     Extension();
     ~Extension();
 
+
     void register_callback(const callback_raw_t& cb);
     void init_asio();
+
+    int callback(const char* function, int queue_id, int status, const std::string& data) const;
     int call(char* output, int output_sz, const char* function, const char** argv, int argc);
 
     // Index of each element when recieved raw from SQF
@@ -48,7 +51,7 @@ private:
     boost::asio::io_service m_io_service;
     boost::thread_group m_threadpool;
 
-    boost::function<int(const char*, int, int, const std::string&)> m_callback;
+    callback_raw_t m_callback;
     std::mutex m_cb_mutex;
 
     uint8_t m_threadcount;

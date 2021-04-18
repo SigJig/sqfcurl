@@ -36,3 +36,6 @@ dist/
 build
 
 @sqfcurl/
+
+CMakeSettings.json
+.vs*

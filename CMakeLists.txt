@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(sqfcurl VERSION 1.0)
 
-set(EXECUTABLE ON)
+set(EXECUTABLE OFF)
 
 file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
@@ -29,7 +29,11 @@ endif()
 
 target_compile_definitions(sqfcurl
                             PRIVATE EXTENSION_NAME="sqfcurl"
-                            PRIVATE EXTENSION_CB_FNC="extension_cb")
+                            PRIVATE EXTENSION_CB_FNC="extension_cb"
+                            PUBLIC _SILENCE_CXX17_ALLOCATOR_VOID_DEPRECATION_WARNING
+                            PUBLIC _WIN32_WINNT=0x0601
+                            PUBLIC  _SILENCE_CXX17_C_HEADER_DEPRECATION_WARNING
+                            )
 
 target_link_libraries(sqfcurl
                     ${CONAN_LIBS})
