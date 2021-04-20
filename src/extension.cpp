@@ -5,7 +5,7 @@
 #include "utils.h"
 
 #include <utility>
-#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/basic_file_sink.h>
 
 #include <iostream>
 
@@ -13,13 +13,15 @@
 Extension::Extension()
     : m_threadcount{4}, m_callback{nullptr}
 {
-    m_logger = spdlog::rotating_logger_mt("file_logger", "sqfcurl.log", 1048576 * 5, 3);
+    m_logger = spdlog::basic_logger_mt("basic_logger", "sqfcurl.log");
+    m_logger->set_level(spdlog::level::trace);
 
     init_asio();
 }
 
 Extension::~Extension()
 {
+    m_work.reset(nullptr);
     m_io_service.stop();
     m_threadpool.join_all();
 }

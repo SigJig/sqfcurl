@@ -16,7 +16,7 @@
 
 using namespace boost::placeholders;
 
-typedef std::function<int(char const*, char const*, char const* data)> callback_raw_t;
+typedef int(*callback_raw_t)(char const*, char const*, char const*);
 typedef boost::function<int(int, const std::string&)> callback_t;
 
 class Extension
