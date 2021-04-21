@@ -73,7 +73,7 @@ int STDCALL RVExtensionArgs(char* output, int output_sz, const char* function, c
 void STDCALL RVExtensionRegisterCallback(int(*callbackProc)(char const *name, char const *function, char const *data))
 {
     //auto ptr = std::make_unique<callback_raw_t>(cb);
-    ext->m_logger->info("Registering callback");
+    ext->logger->info("Registering callback");
     ext->register_callback(callbackProc);
 }
 

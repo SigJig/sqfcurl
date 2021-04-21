@@ -13,17 +13,15 @@
 Extension::Extension()
     : m_threadcount{4}, m_callback{nullptr}
 {
-    m_logger = spdlog::basic_logger_mt("basic_logger", "sqfcurl.log");
-    m_logger->set_level(spdlog::level::trace);
+    logger = spdlog::basic_logger_mt("basic_logger", "sqfcurl.log");
+    logger->set_level(spdlog::level::trace);
 
     init_asio();
 }
 
 Extension::~Extension()
 {
-    m_work.reset(nullptr);
-    m_io_service.stop();
-    m_threadpool.join_all();
+    clear_asio();
 }
 
 void Extension::init_asio()
@@ -34,20 +32,28 @@ void Extension::init_asio()
         m_threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &m_io_service));
     }
 
-    m_logger->info("Created {} threads", m_threadcount);
+    logger->info("Created {} threads", m_threadcount);
+}
+
+void Extension::clear_asio()
+{
+    m_work.reset(nullptr);
+    m_io_service.stop();
+
+    m_threadpool.join_all();
 }
 
 void Extension::register_callback(callback_raw_t cb)
 {
     if (m_callback)
     {
-        m_logger->info("Attempted to register callback when already registered");
+        logger->info("Attempted to register callback when already registered");
         return;
     }
 
     std::lock_guard<std::mutex> guard(m_cb_mutex);
     m_callback = cb;
-    m_logger->info("Callback registered");
+    logger->info("Callback registered");
 }
 
 int Extension::callback(const char* function, int queue_id, int status, const std::string& data) const
@@ -124,7 +130,7 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
         boost::function<int(int, const std::string&)> cb = boost::bind(
             &Extension::callback, this, function, queue_id, _1, _2);
 
-        m_io_service.post(boost::bind(&Request::perform, req, cb, m_logger));
+        m_io_service.post(boost::bind(&Request::perform, req, cb, logger));
     }
     catch (const CallError& e)
     {

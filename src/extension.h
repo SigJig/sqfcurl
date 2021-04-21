@@ -25,9 +25,7 @@ public:
     Extension();
     ~Extension();
 
-
     void register_callback(callback_raw_t cb);
-    void init_asio();
 
     int callback(const char* function, int queue_id, int status, const std::string& data) const;
     int call(char* output, int output_sz, const char* function, const char** argv, int argc);
@@ -45,8 +43,11 @@ public:
         BODY
     };
 
-    std::shared_ptr<spdlog::logger> m_logger;
+    std::shared_ptr<spdlog::logger> logger;
 private:
+    void init_asio();
+    void clear_asio();
+
     std::unique_ptr<boost::asio::io_service::work> m_work;
     boost::asio::io_service m_io_service;
     boost::thread_group m_threadpool;
