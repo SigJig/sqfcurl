@@ -16,7 +16,7 @@ extern "C"
     int RVExtensionArgs(char* output, int output_sz, const char* function, const char** argv, int argc);
 
     __attribute__((dllexport))
-    void RVExtensionRegisterCallback(const callback_raw_t& cb);
+    void RVExtensionRegisterCallback(callback_raw_t cb);
 
     __attribute__((dllexport))
     void RVExtensionVersion(char* output, int output_sz);
@@ -59,7 +59,7 @@ extern "C"
     #define STDCALL __stdcall
 
     __declspec(dllexport) void __stdcall RVEXtensionVersion(char* output, int output_sz);
-    __declspec(dllexport) void __stdcall RVExtensionRegisterCallback(int(*callbackProc)(char const *name, char const *function, char const *data));
+    __declspec(dllexport) void __stdcall RVExtensionRegisterCallback(callback_raw_t cb);
     __declspec(dllexport) int __stdcall RVExtensionArgs(char* output, int output_sz, const char* function, const char** argv, int argc);
 }
 
@@ -70,11 +70,11 @@ int STDCALL RVExtensionArgs(char* output, int output_sz, const char* function, c
     return ext->call(output, output_sz, function, argv, argc);
 }
 
-void STDCALL RVExtensionRegisterCallback(int(*callbackProc)(char const *name, char const *function, char const *data))
+void STDCALL RVExtensionRegisterCallback(callback_raw_t cb)
 {
     //auto ptr = std::make_unique<callback_raw_t>(cb);
     ext->logger->info("Registering callback");
-    ext->register_callback(callbackProc);
+    ext->register_callback(cb);
 }
 
 void STDCALL RVExtensionVersion(char* output, int output_sz)
