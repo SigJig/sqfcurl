@@ -51,7 +51,7 @@ void Extension::register_callback(callback_raw_t cb)
         return;
     }
 
-    std::lock_guard<std::mutex> guard(m_cb_mutex);
+    //std::lock_guard<std::mutex> guard(m_cb_mutex);
     m_callback = cb;
     logger->info("Callback registered");
 }
@@ -68,7 +68,6 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
     try
     {
         {
-            std::lock_guard<std::mutex> guard(m_cb_mutex);
             if (!m_callback)
             {
                 throw CallError(ErrorCode::BAD_INITIALIZATION, "Callback has not been assigned");
@@ -112,25 +111,24 @@ int Extension::call(char* output, int output_sz, const char* function, const cha
             if (argc >= RawIndex::BODY)
             {
                 req = std::make_shared<Request>(
-                    method, url,
+                    this, method, url,
                     sanitize_input(argv[RawIndex::BODY]),
                     headers);
             }
             else
             {
-                req = std::make_shared<Request>(method, url, headers);
+                req = std::make_shared<Request>(this, method, url, headers);
             }
         }
         else
         {
-            req = std::make_shared<Request>(method, url);
+            req = std::make_shared<Request>(this, method, url);
         }
 
-        std::lock_guard<std::mutex> guard(m_cb_mutex);
         boost::function<int(int, const std::string&)> cb = boost::bind(
             &Extension::callback, this, function, queue_id, _1, _2);
 
-        m_io_service.post(boost::bind(&Request::perform, req, cb, logger));
+        m_io_service.post(boost::bind(&Request::perform, req, cb));
     }
     catch (const CallError& e)
     {

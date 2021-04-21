@@ -4,7 +4,7 @@
 
 #include <functional>
 #include <memory>
-#include <mutex>
+//#include <mutex>
 
 #include <boost/asio/io_service.hpp>
 #include <boost/bind/bind.hpp>
@@ -53,7 +53,7 @@ private:
     boost::thread_group m_threadpool;
 
     callback_raw_t m_callback;
-    std::mutex m_cb_mutex;
+    //std::mutex m_cb_mutex;
 
     uint8_t m_threadcount;
 };

@@ -5,32 +5,30 @@
 
 #include <iostream>
 
-Request::Request(std::string method, std::string url)
-    : m_method(method), m_url(url)
+Request::Request(Extension* ext, std::string method, std::string url)
+    : m_ext(ext), m_method(method), m_url(url)
 {
 }
 
-Request::Request(std::string method, std::string url, std::string body)
-    : m_method(method), m_url(url), m_body(body)
-{
-
-}
-
-Request::Request(std::string method, std::string url, std::string body, cpr::Header headers)
-    : m_method(method), m_url(url), m_body(body), m_headers(headers)
+Request::Request(Extension* ext, std::string method, std::string url, std::string body)
+    : m_ext(ext), m_method(method), m_url(url), m_body(body)
 {
 
 }
 
-Request::Request(std::string method, std::string url, cpr::Header headers)
-    : m_method(method), m_url(url), m_headers(headers)
+Request::Request(Extension* ext, std::string method, std::string url, std::string body, cpr::Header headers)
+    : m_ext(ext), m_method(method), m_url(url), m_body(body), m_headers(headers)
 {
 
 }
 
-void Request::perform(
-    const boost::function<int(int, const std::string&)>& cb,
-    std::shared_ptr<spdlog::logger> logger)
+Request::Request(Extension* ext, std::string method, std::string url, cpr::Header headers)
+    : m_ext(ext), m_method(method), m_url(url), m_headers(headers)
+{
+
+}
+
+void Request::perform(const boost::function<int(int, const std::string&)>& cb)
 {
     try
     {
