@@ -23,7 +23,7 @@ int main(int argc, char** argv)
         "0",
         "POST",
         "\"http://127.0.0.1:8000/gangs\"",
-        "[ \"[\"\"testheader\"\", \"\"1\"\"]\" ]",
+        "[]",
         arg.c_str()
     };
 

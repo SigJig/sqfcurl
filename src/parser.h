@@ -28,7 +28,7 @@ inline std::vector<std::string> parse_array(const std::string& input)
         }
         else if (c == ']' && !in_string)
         {
-            output.push_back(current);
+            if (!current.empty()) output.push_back(current);
 
             return std::move(output);
         }
